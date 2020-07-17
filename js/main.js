@@ -12,14 +12,17 @@
       scrollHeight: 0,
       objs: {
         container: document.querySelector("#scroll-section-0"),
-        massageA: document.querySelector("#scroll-section-0 .main-message.a"),
-        massageB: document.querySelector("#scroll-section-0 .main-message.b"),
-        massageC: document.querySelector("#scroll-section-0 .main-message.c"),
-        massageD: document.querySelector("#scroll-section-0 .main-message.d"),
+        messageA: document.querySelector("#scroll-section-0 .main-message.a"),
+        messageB: document.querySelector("#scroll-section-0 .main-message.b"),
+        messageC: document.querySelector("#scroll-section-0 .main-message.c"),
+        messageD: document.querySelector("#scroll-section-0 .main-message.d"),
       },
       values: {
-        massageA_opacity: [0, 1, { start: 0.1, end: 0.2 }],
-        massageB_opacity: [0, 1, { start: 0.3, end: 0.4 }],
+        messageA_opacity_in: [0, 1, { start: 0.1, end: 0.2 }],
+        messageA_translateY_in: [20, 0, { start: 0.1, end: 0.2 }],
+        messageB_opacity_in: [0, 1, { start: 0.3, end: 0.4 }],
+        messageA_opacity_out: [1, 0, { start: 0.25, end: 0.3 }],
+        messageA_translateY_out: [0, -20, { start: 0.25, end: 0.3 }],
       },
     },
     {
@@ -54,10 +57,14 @@
   function setLayout() {
     //스크롤높이 세팅
     for (let i = 0; i < sceneInfo.length; i++) {
-      sceneInfo[i].scrollHeight = sceneInfo[i].heightNum * window.innerHeight;
-      sceneInfo[
-        i
-      ].objs.container.style.height = `${sceneInfo[i].scrollHeight}px`;
+      if (sceneInfo[i].type === "sticky") {
+        sceneInfo[i].scrollHeight = sceneInfo[i].heightNum * window.innerHeight;
+        sceneInfo[
+          i
+        ].objs.container.style.height = `${sceneInfo[i].scrollHeight}px`;
+      } else if (sceneInfo[i].type === "normal") {
+        sceneInfo[i].scrollHeight = sceneInfo[i].objs.container.offsetHeight;
+      }
     }
     //활성화시킬 씬 반영
     yOffset = window.pageYOffset;
@@ -80,6 +87,14 @@
 
     if (values.length === 3) {
       // start ~ end 사이에 애니메이션 실행
+      const partScrollStart = values[2].start * scrollHeight;
+      const partScrollEnd = values[2].end * scrollHeight;
+      const partScrollHeight = partScrollEnd - partScrollStart;
+
+      rv =
+        ((currentYOffset - partScrollStart) / partScrollHeight) *
+          (values[1] - values[0]) +
+        values[0];
     } else {
       rv = scrollRatio * (values[1] - values[0]) + values[0];
     }
@@ -90,15 +105,39 @@
   function playAnimation() {
     const objs = sceneInfo[currentScene].objs;
     const values = sceneInfo[currentScene].values;
-    const currentYOffset = yOffset - prevScrollHeight;
+    const currentYOffset = yOffset - prevScrollHeight; //현재씬에서 얼마나 스크롤했나
+    const scrollHeight = sceneInfo[currentScene].scrollHeight;
+    const scrollRatio = currentYOffset / scrollHeight;
     console.log(currentScene);
     switch (currentScene) {
       case 0:
-        let messageA_opacity_in = calcValues(
-          values.messageA_opacity,
+        const messageA_opacity_in = calcValues(
+          values.messageA_opacity_in,
           currentYOffset
         ); //투명도 등장
-        objs.messageA.style.opacity = messageA_opacity_in; //스타일적용
+        const messageA_opacity_out = calcValues(
+          values.messageA_opacity_out,
+          currentYOffset
+        );
+        const messageA_translateY_in = calcValues(
+          values.messageA_translateY_in,
+          currentYOffset
+        );
+        const messageA_translateY_out = calcValues(
+          values.messageA_translateY_out,
+          currentYOffset
+        );
+
+        if (scrollRatio <= 0.22) {
+          //in
+          objs.messageA.style.opacity = messageA_opacity_in; //스타일적용
+          objs.messageA.style.transform = `translateY(${messageA_translateY_in}%)`;
+        } else {
+          //out
+          objs.messageA.style.opacity = messageA_opacity_out;
+          objs.messageA.style.transform = `translateY(${messageA_translateY_out}%)`;
+        }
+
         break;
       case 1:
         break;
@@ -127,7 +166,7 @@
       document.body.setAttribute("id", `show-scene-${currentScene}`);
     }
 
-    if (enterNewScene) return;
+    if (enterNewScene) return; //enterNewScene이 true가될때  playAni 한턴 거름
     playAnimation();
   }
 
