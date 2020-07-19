@@ -125,6 +125,9 @@
       }
     }
     document.body.setAttribute("id", `show-scene-${currentScene}`);
+
+    const heightRatio = window.innerHeight / 1080;
+    sceneInfo[0].objs.canvas.style.transform = `translate3d(-50%, -50%, 0) scale(${heightRatio})`;
   }
 
   function calcValues(values, currentYOffset) {
@@ -159,22 +162,10 @@
     console.log(currentScene);
     switch (currentScene) {
       case 0:
-        const messageA_opacity_in = calcValues(
-          values.messageA_opacity_in,
-          currentYOffset
-        ); //투명도 등장
-        const messageA_opacity_out = calcValues(
-          values.messageA_opacity_out,
-          currentYOffset
+        let sequence = Math.round(
+          calcValues(values.imageSequence, currentYOffset)
         );
-        const messageA_translateY_in = calcValues(
-          values.messageA_translateY_in,
-          currentYOffset
-        );
-        const messageA_translateY_out = calcValues(
-          values.messageA_translateY_out,
-          currentYOffset
-        );
+        objs.context.drawImage(objs.videoImages[sequence], 0, 0);
 
         if (scrollRatio <= 0.22) {
           // in
