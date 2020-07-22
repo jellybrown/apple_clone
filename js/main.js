@@ -428,8 +428,11 @@
           //values.rectStartY = objs.canvas.getBoundingClientRect().top;
           values.rectStartY =
             objs.canvas.offsetTop +
-            (objs.canvas.height - objs.canvas.height * canvasScaleRatio);
+            (objs.canvas.height - objs.canvas.height * canvasScaleRatio) / 2;
+          console.log("이것" + values.rectStartY);
 
+          values.rect1X[2].start = window.innerHeight / 2 / scrollHeight;
+          values.rect2X[2].start = window.innerHeight / 2 / scrollHeight;
           values.rect1X[2].end = values.rectStartY / scrollHeight; //왼쪽
           values.rect2X[2].end = values.rectStartY / scrollHeight; //오른쪽
         }
@@ -441,18 +444,23 @@
           values.rect1X[0] + recalculatedInnerWidth - whiteRectWidth;
         values.rect2X[1] = values.rect2X[0] + whiteRectWidth;
 
+        //죄우 흰색박스 그리기
+        //objs.context.fillRect(values.rect1X[0], 0, parseInt(whiteRectWidth), objs.canvas.height);
+        //objs.context.fillRect(values.rect2X[0], 0, parseInt(whiteRectWidth), objs.canvas.height);
         objs.context.fillRect(
-          values.rect1X[0],
+          parseInt(calcValues(values.rect1X, currentYOffset)),
           0,
           parseInt(whiteRectWidth),
           objs.canvas.height
         );
+
         objs.context.fillRect(
-          values.rect2X[0],
+          parseInt(calcValues(values.rect2X, currentYOffset)),
           0,
           parseInt(whiteRectWidth),
           objs.canvas.height
         );
+
         break;
     }
   }
