@@ -181,10 +181,19 @@
       const partScrollEnd = values[2].end * scrollHeight;
       const partScrollHeight = partScrollEnd - partScrollStart;
 
-      rv =
-        ((currentYOffset - partScrollStart) / partScrollHeight) *
-          (values[1] - values[0]) +
-        values[0];
+      if (
+        currentYOffset >= partScrollStart &&
+        currentYOffset <= partScrollEnd
+      ) {
+        rv =
+          ((currentYOffset - partScrollStart) / partScrollHeight) *
+            (values[1] - values[0]) +
+          values[0];
+      } else if (currentYOffset < partScrollStart) {
+        rv = values[0];
+      } else if (currentYOffset > partScrollEnd) {
+        rv = values[1];
+      }
     } else {
       rv = scrollRatio * (values[1] - values[0]) + values[0];
     }
@@ -400,8 +409,60 @@
             currentYOffset
           )})`;
         }
+
+        //currentScene 3에서 쓰는 캔버스를 미리 그려주기 시작
+        if (scrollRatio > 0.9) {
+          const objs = sceneInfo[3].objs;
+          const values = sceneInfo[3].values;
+          const widthRatio = window.innerWidth / objs.canvas.width;
+          const heightRatio = window.innerHeight / objs.canvas.height;
+          let canvasScaleRatio;
+
+          if (widthRatio <= heightRatio) {
+            // 캔버스보다 브라우저 창이 홀쭉한 경우
+            canvasScaleRatio = heightRatio;
+          } else {
+            // 캔버스보다 브라우저 창이 납작한 경우
+            canvasScaleRatio = widthRatio;
+          }
+
+          objs.canvas.style.transform = `scale(${canvasScaleRatio})`;
+          objs.context.fillStyle = "white";
+          objs.context.drawImage(objs.images[0], 0, 0);
+
+          //캔버스 사이즈에 맞춰 가정한 innerWidth와 innerHeight
+          const recalculatedInnerWidth =
+            document.body.offsetWidth / canvasScaleRatio;
+          const recalculatedInnerHeight = window.innerHeight / canvasScaleRatio;
+
+          const whiteRectWidth = recalculatedInnerWidth * 0.15;
+          values.rect1X[0] = (objs.canvas.width - recalculatedInnerWidth) / 2;
+          values.rect1X[1] = values.rect1X[0] - whiteRectWidth;
+          values.rect2X[0] =
+            values.rect1X[0] + recalculatedInnerWidth - whiteRectWidth;
+          values.rect2X[1] = values.rect2X[0] + whiteRectWidth;
+
+          //죄우 흰색박스 그리기
+          //objs.context.fillRect(values.rect1X[0], 0, parseInt(whiteRectWidth), objs.canvas.height);
+          //objs.context.fillRect(values.rect2X[0], 0, parseInt(whiteRectWidth), objs.canvas.height);
+          objs.context.fillRect(
+            parseInt(values.rect1X[0]),
+            0,
+            parseInt(whiteRectWidth),
+            objs.canvas.height
+          );
+
+          objs.context.fillRect(
+            parseInt(values.rect2X[0]),
+            0,
+            parseInt(whiteRectWidth),
+            objs.canvas.height
+          );
+        }
+
         break;
       case 3:
+        let step = 0;
         // 가로/세로 모두 꽉 차게 하기 위해 여기서 세팅(계산 필요)
         const widthRatio = window.innerWidth / objs.canvas.width;
         const heightRatio = window.innerHeight / objs.canvas.height;
@@ -416,6 +477,7 @@
         }
 
         objs.canvas.style.transform = `scale(${canvasScaleRatio})`;
+        objs.context.fillStyle = "white";
         objs.context.drawImage(objs.images[0], 0, 0);
 
         //캔버스 사이즈에 맞춰 가정한 innerWidth와 innerHeight
@@ -425,11 +487,10 @@
 
         if (!values.rectStartY) {
           //rectStartY값이 없다면 셋팅
-          //values.rectStartY = objs.canvas.getBoundingClientRect().top;
+          //values.rectStartY = objs.canvas.getBoundingClientRect().top; --> 정확하지 않음
           values.rectStartY =
             objs.canvas.offsetTop +
             (objs.canvas.height - objs.canvas.height * canvasScaleRatio) / 2;
-          console.log("이것" + values.rectStartY);
 
           values.rect1X[2].start = window.innerHeight / 2 / scrollHeight;
           values.rect2X[2].start = window.innerHeight / 2 / scrollHeight;
@@ -460,6 +521,16 @@
           parseInt(whiteRectWidth),
           objs.canvas.height
         );
+
+        if (scrollRatio < values.rect1X[2].end) {
+          step = 1;
+          console.log(values.rect1X[2].end);
+          console.log(scrollRatio);
+          console.log("캔버스 닿기전");
+        } else {
+          step = 2;
+          console.log("캔버스 닿은후");
+        }
 
         break;
     }
