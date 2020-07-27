@@ -145,12 +145,12 @@
     for (let i = 0; i < sceneInfo.length; i++) {
       if (sceneInfo[i].type === "sticky") {
         sceneInfo[i].scrollHeight = sceneInfo[i].heightNum * window.innerHeight;
-        sceneInfo[
-          i
-        ].objs.container.style.height = `${sceneInfo[i].scrollHeight}px`;
       } else if (sceneInfo[i].type === "normal") {
         sceneInfo[i].scrollHeight = sceneInfo[i].objs.container.offsetHeight;
       }
+      sceneInfo[
+        i
+      ].objs.container.style.height = `${sceneInfo[i].scrollHeight}px`;
     }
     //활성화시킬 씬 반영
     yOffset = window.pageYOffset;
